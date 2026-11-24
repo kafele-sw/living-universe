@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Living Universe</title>
+
+<style>
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: black;
+}
+
+canvas {
+    display: block;
+}
+</style>
+</head>
+
+<body>
+<canvas id="world"></canvas>
+
+<script>
+const canvas = document.getElementById("world");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const COUNT = 500;
+
+const particles = [];
+
+for (let i = 0; i < COUNT; i++) {
+    particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2
+    });
+}
+
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
+
+window.addEventListener("mousemove", e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+function update() {
+
+    for (let p of particles) {
+
+        let dx = mouseX - p.x;
+        let dy = mouseY - p.y;
+
+        let dist = Math.sqrt(dx * dx + dy * dy) + 1;
+
+        let attraction = 0.02;
+
+        p.vx += dx / dist * attraction;
+        p.vy += dy / dist * attraction;
+
+        p.vx *= 0.99;
+        p.vy *= 0.99;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x += canvas.width;
+        if (p.x > canvas.width) p.x -= canvas.width;
+
+        if (p.y < 0) p.y += canvas.height;
+        if (p.y > canvas.height) p.y -= canvas.height;
+    }
+}
+
+function draw() {
+
+    ctx.fillStyle = "rgba(0,0,0,0.1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let p of particles) {
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+
+        ctx.fillStyle = "#44ccff";
+        ctx.fill();
+    }
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
