@@ -4,179 +4,427 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Living Universe</title>
+<title>The Living Universe</title>
 
 <style>
 html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: black;
+    margin:0;
+    overflow:hidden;
+    background:black;
+    width:100%;
+    height:100%;
 }
 
 canvas {
-    display: block;
+    display:block;
+}
+
+#chapter {
+    position:absolute;
+    top:20px;
+    left:20px;
+
+    color:white;
+    font-family:Georgia, serif;
+    font-size:18px;
+    opacity:.75;
+
+    pointer-events:none;
 }
 </style>
 </head>
 
 <body>
+
+<div id="chapter"></div>
 <canvas id="world"></canvas>
 
 <script>
+
+/*
+===============================================================================
+
+THE LIVING UNIVERSE
+
+This is not a particle system.
+
+This is an experiment in narrative emergence.
+
+The viewer should continuously cycle through:
+
+    understanding
+        ↓
+    uncertainty
+        ↓
+    discovery
+        ↓
+    understanding
+
+Every phase of the universe exists to create opportunities
+for revelation.
+
+===============================================================================
+
+NARRATIVE CELL
+
+    Stillness
+        ↓
+    Disturbance
+        ↓
+    Curiosity
+        ↓
+    Learning
+        ↓
+    Connection
+        ↓
+    Crisis
+        ↓
+    Adaptation
+        ↓
+    Harmony
+        ↓
+    Transcendence
+
+===============================================================================
+*/
+
 const canvas = document.getElementById("world");
 const ctx = canvas.getContext("2d");
+const chapterText = document.getElementById("chapter");
 
-function resize() {
+function resize(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
+
 resize();
 window.addEventListener("resize", resize);
 
-const AGENT_COUNT = 150;
-
 const agents = [];
 
-function random(min, max) {
-    return min + Math.random() * (max - min);
-}
+const AGENT_COUNT = 300;
 
-for (let i = 0; i < AGENT_COUNT; i++) {
+for(let i=0;i<AGENT_COUNT;i++){
+
     agents.push({
-        x: random(0, canvas.width),
-        y: random(0, canvas.height),
 
-        vx: random(-1, 1),
-        vy: random(-1, 1),
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
 
-        age: 0,
+        vx:0,
+        vy:0,
 
-        memory: {
-            socialExperience: 0
-        },
+        memory:0,
+        age:0
 
-        curiosity: random(0.2, 1.0),
-        sociability: random(0.2, 1.0)
     });
+
 }
 
-function updateAgent(agent) {
+const chapters = [
 
-    agent.age++;
+{
+    name:"Stillness",
+    duration:10000
+},
 
-    let neighbors = 0;
-    let centerX = 0;
-    let centerY = 0;
+{
+    name:"Disturbance",
+    duration:10000
+},
 
-    for (let other of agents) {
+{
+    name:"Curiosity",
+    duration:15000
+},
 
-        if (other === agent) continue;
+{
+    name:"Learning",
+    duration:15000
+},
 
-        let dx = other.x - agent.x;
-        let dy = other.y - agent.y;
+{
+    name:"Connection",
+    duration:15000
+},
 
-        let dist = Math.sqrt(dx * dx + dy * dy);
+{
+    name:"Crisis",
+    duration:10000
+},
 
-        if (dist < 80) {
-            neighbors++;
-            centerX += other.x;
-            centerY += other.y;
+{
+    name:"Adaptation",
+    duration:15000
+},
+
+{
+    name:"Harmony",
+    duration:15000
+},
+
+{
+    name:"Transcendence",
+    duration:10000
+}
+
+];
+
+let chapterIndex = 0;
+let chapterStart = performance.now();
+
+function nextChapter(){
+
+    chapterIndex++;
+
+    if(chapterIndex >= chapters.length){
+
+        chapterIndex = 0;
+
+        for(const agent of agents){
+
+            agent.memory *= .6;
+
         }
+
     }
 
-    if (neighbors > 0) {
+    chapterStart = performance.now();
+}
 
-        centerX /= neighbors;
-        centerY /= neighbors;
+function currentChapter(){
 
-        let dx = centerX - agent.x;
-        let dy = centerY - agent.y;
+    return chapters[chapterIndex];
 
-        agent.memory.socialExperience =
-            agent.memory.socialExperience * 0.995 +
-            neighbors * 0.005;
+}
 
-        let attraction =
-            0.001 +
-            agent.sociability * 0.01 +
-            agent.memory.socialExperience * 0.0002;
+function updateChapter(now){
 
-        agent.vx += dx * attraction;
-        agent.vy += dy * attraction;
+    const chapter = currentChapter();
+
+    if(now - chapterStart > chapter.duration){
+
+        nextChapter();
+
     }
 
-    let wanderStrength = 0.15 * agent.curiosity;
+    chapterText.textContent =
+        chapter.name;
 
-    agent.vx += random(-wanderStrength, wanderStrength);
-    agent.vy += random(-wanderStrength, wanderStrength);
+}
 
-    let speedLimit = 2.5;
+function updateAgents(chapter){
 
-    let speed = Math.sqrt(
-        agent.vx * agent.vx +
-        agent.vy * agent.vy
+    for(const a of agents){
+
+        a.age++;
+
+        switch(chapter.name){
+
+            case "Stillness":
+
+                a.vx *= .98;
+                a.vy *= .98;
+
+                break;
+
+            case "Disturbance":
+
+                a.vx += (Math.random()-.5)*1.5;
+                a.vy += (Math.random()-.5)*1.5;
+
+                break;
+
+            case "Curiosity":
+
+                a.vx += (Math.random()-.5)*.3;
+                a.vy += (Math.random()-.5)*.3;
+
+                break;
+
+            case "Learning":
+
+                a.memory += .02;
+
+                a.vx *= 1.01;
+                a.vy *= 1.01;
+
+                break;
+
+            case "Connection":
+
+                let cx = 0;
+                let cy = 0;
+                let count = 0;
+
+                for(const b of agents){
+
+                    if(a === b) continue;
+
+                    const dx = b.x-a.x;
+                    const dy = b.y-a.y;
+
+                    const d = Math.sqrt(dx*dx+dy*dy);
+
+                    if(d < 100){
+
+                        count++;
+
+                        cx += b.x;
+                        cy += b.y;
+
+                    }
+                }
+
+                if(count){
+
+                    cx /= count;
+                    cy /= count;
+
+                    a.vx += (cx-a.x)*0.0008;
+                    a.vy += (cy-a.y)*0.0008;
+
+                }
+
+                break;
+
+            case "Crisis":
+
+                a.vx += (Math.random()-.5)*4;
+                a.vy += (Math.random()-.5)*4;
+
+                break;
+
+            case "Adaptation":
+
+                a.vx *= .97;
+                a.vy *= .97;
+
+                break;
+
+            case "Harmony":
+
+                const targetX =
+                    canvas.width/2 +
+                    Math.cos(a.age*.01)*250;
+
+                const targetY =
+                    canvas.height/2 +
+                    Math.sin(a.age*.01)*250;
+
+                a.vx += (targetX-a.x)*0.0004;
+                a.vy += (targetY-a.y)*0.0004;
+
+                break;
+
+            case "Transcendence":
+
+                a.vx +=
+                    Math.cos(a.age*.02)*0.03;
+
+                a.vy +=
+                    Math.sin(a.age*.02)*0.03;
+
+                break;
+
+        }
+
+        a.x += a.vx;
+        a.y += a.vy;
+
+        if(a.x < 0) a.x += canvas.width;
+        if(a.x > canvas.width) a.x -= canvas.width;
+
+        if(a.y < 0) a.y += canvas.height;
+        if(a.y > canvas.height) a.y -= canvas.height;
+    }
+}
+
+function draw(chapter){
+
+    ctx.fillStyle = "rgba(0,0,0,.08)";
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
     );
 
-    if (speed > speedLimit) {
-        agent.vx = agent.vx / speed * speedLimit;
-        agent.vy = agent.vy / speed * speedLimit;
+    for(const a of agents){
+
+        let color = "#ffffff";
+
+        switch(chapter.name){
+
+            case "Stillness":
+                color="#666666";
+                break;
+
+            case "Disturbance":
+                color="#ff5533";
+                break;
+
+            case "Curiosity":
+                color="#ffaa44";
+                break;
+
+            case "Learning":
+                color="#99ff44";
+                break;
+
+            case "Connection":
+                color="#44ccff";
+                break;
+
+            case "Crisis":
+                color="#ff2222";
+                break;
+
+            case "Adaptation":
+                color="#bb66ff";
+                break;
+
+            case "Harmony":
+                color="#ffffff";
+                break;
+
+            case "Transcendence":
+                color="#88ffff";
+                break;
+        }
+
+        ctx.beginPath();
+
+        ctx.arc(
+            a.x,
+            a.y,
+            2.5,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fillStyle = color;
+        ctx.fill();
     }
-
-    agent.vx *= 0.98;
-    agent.vy *= 0.98;
-
-    agent.x += agent.vx;
-    agent.y += agent.vy;
-
-    if (agent.x < 0) agent.x += canvas.width;
-    if (agent.x > canvas.width) agent.x -= canvas.width;
-
-    if (agent.y < 0) agent.y += canvas.height;
-    if (agent.y > canvas.height) agent.y -= canvas.height;
 }
 
-function drawAgent(agent) {
+function loop(now){
 
-    let social = Math.min(
-        1,
-        agent.memory.socialExperience / 10
-    );
+    updateChapter(now);
 
-    let blue = Math.floor(255 * social);
-    let red = Math.floor(255 * (1 - social));
+    const chapter =
+        currentChapter();
 
-    ctx.beginPath();
-    ctx.arc(agent.x, agent.y, 3, 0, Math.PI * 2);
+    updateAgents(chapter);
 
-    ctx.fillStyle = `rgb(${red},100,${blue})`;
-    ctx.fill();
-}
+    draw(chapter);
 
-function update() {
-    for (let agent of agents) {
-        updateAgent(agent);
-    }
-}
-
-function draw() {
-
-    ctx.fillStyle = "rgba(0,0,0,0.08)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let agent of agents) {
-        drawAgent(agent);
-    }
-}
-
-function loop() {
-    update();
-    draw();
     requestAnimationFrame(loop);
 }
 
-loop();
+requestAnimationFrame(loop);
+
 </script>
+
 </body>
 </html>
