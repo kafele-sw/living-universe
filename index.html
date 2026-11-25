@@ -2,12 +2,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>The Living Universe</title>
+<title>Living Universe</title>
 
 <style>
-html, body {
+html,body{
     margin:0;
     overflow:hidden;
     background:black;
@@ -15,20 +15,20 @@ html, body {
     height:100%;
 }
 
-canvas {
+canvas{
     display:block;
 }
 
-#chapter {
+#chapter{
     position:absolute;
-    top:20px;
-    left:20px;
+    top:15px;
+    left:15px;
 
     color:white;
-    font-family:Georgia, serif;
+    font-family:Georgia,serif;
     font-size:18px;
-    opacity:.75;
 
+    opacity:.8;
     pointer-events:none;
 }
 </style>
@@ -37,6 +37,7 @@ canvas {
 <body>
 
 <div id="chapter"></div>
+
 <canvas id="world"></canvas>
 
 <script>
@@ -46,76 +47,92 @@ canvas {
 
 THE LIVING UNIVERSE
 
-This is not a particle system.
+MISSION
 
-This is an experiment in narrative emergence.
+Create an infinite sequence of discoveries.
 
-The viewer should continuously cycle through:
+The viewer should continuously move through:
 
     understanding
-        ↓
+    ↓
     uncertainty
-        ↓
+    ↓
     discovery
-        ↓
+    ↓
     understanding
 
-Every phase of the universe exists to create opportunities
+The simulation exists solely to create opportunities
 for revelation.
 
 ===============================================================================
 
 NARRATIVE CELL
 
-    Stillness
-        ↓
-    Disturbance
-        ↓
-    Curiosity
-        ↓
-    Learning
-        ↓
-    Connection
-        ↓
-    Crisis
-        ↓
-    Adaptation
-        ↓
-    Harmony
-        ↓
-    Transcendence
+Stillness
+↓
+Disturbance
+↓
+Curiosity
+↓
+Learning
+↓
+Connection
+↓
+Crisis
+↓
+Adaptation
+↓
+Harmony
+↓
+Transcendence
+
+Transcendence becomes the beginning
+of the next story.
+
+===============================================================================
+
+GUIDING PRINCIPLE
+
+An audience can't appreciate learning
+until they can observe adaptation.
+
+Adaptation must be visible.
+
+Every chapter must be recognizable.
 
 ===============================================================================
 */
 
 const canvas = document.getElementById("world");
 const ctx = canvas.getContext("2d");
-const chapterText = document.getElementById("chapter");
+
+const chapterLabel = document.getElementById("chapter");
 
 function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 }
 
 resize();
-window.addEventListener("resize", resize);
+addEventListener("resize", resize);
 
-const agents = [];
+const AGENTS = [];
+const COUNT = 250;
 
-const AGENT_COUNT = 300;
+for(let i=0;i<COUNT;i++){
 
-for(let i=0;i<AGENT_COUNT;i++){
+    AGENTS.push({
 
-    agents.push({
-
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
 
         vx:0,
         vy:0,
 
-        memory:0,
-        age:0
+        learnedDX:0,
+        learnedDY:0,
+
+        age:Math.random()*1000
 
     });
 
@@ -123,226 +140,270 @@ for(let i=0;i<AGENT_COUNT;i++){
 
 const chapters = [
 
-{
-    name:"Stillness",
-    duration:10000
-},
-
-{
-    name:"Disturbance",
-    duration:10000
-},
-
-{
-    name:"Curiosity",
-    duration:15000
-},
-
-{
-    name:"Learning",
-    duration:15000
-},
-
-{
-    name:"Connection",
-    duration:15000
-},
-
-{
-    name:"Crisis",
-    duration:10000
-},
-
-{
-    name:"Adaptation",
-    duration:15000
-},
-
-{
-    name:"Harmony",
-    duration:15000
-},
-
-{
-    name:"Transcendence",
-    duration:10000
-}
+["Stillness",8000],
+["Disturbance",8000],
+["Curiosity",10000],
+["Learning",10000],
+["Connection",10000],
+["Crisis",7000],
+["Adaptation",10000],
+["Harmony",10000],
+["Transcendence",10000]
 
 ];
 
 let chapterIndex = 0;
 let chapterStart = performance.now();
+let crisisTriggered = false;
+
+function currentChapter(){
+
+    return chapters[chapterIndex][0];
+
+}
 
 function nextChapter(){
 
     chapterIndex++;
 
     if(chapterIndex >= chapters.length){
-
         chapterIndex = 0;
-
-        for(const agent of agents){
-
-            agent.memory *= .6;
-
-        }
-
     }
 
     chapterStart = performance.now();
-}
-
-function currentChapter(){
-
-    return chapters[chapterIndex];
+    crisisTriggered = false;
 
 }
 
 function updateChapter(now){
 
-    const chapter = currentChapter();
+    const chapter = chapters[chapterIndex];
 
-    if(now - chapterStart > chapter.duration){
-
+    if(now - chapterStart > chapter[1]){
         nextChapter();
-
     }
 
-    chapterText.textContent =
-        chapter.name;
-
+    chapterLabel.innerText = currentChapter();
 }
 
-function updateAgents(chapter){
+function centerX(){
+    return canvas.width/2;
+}
 
-    for(const a of agents){
+function centerY(){
+    return canvas.height/2;
+}
+
+function updateAgents(){
+
+    const chapter = currentChapter();
+
+    AGENTS.forEach((a,index)=>{
 
         a.age++;
 
-        switch(chapter.name){
+        switch(chapter){
 
             case "Stillness":
 
                 a.vx *= .98;
                 a.vy *= .98;
 
+                a.vx += Math.sin(a.age*.01)*0.002;
+                a.vy += Math.cos(a.age*.01)*0.002;
+
                 break;
 
             case "Disturbance":
 
-                a.vx += (Math.random()-.5)*1.5;
-                a.vy += (Math.random()-.5)*1.5;
+                a.vx += (Math.random()-.5)*2;
+                a.vy += (Math.random()-.5)*2;
 
                 break;
 
             case "Curiosity":
 
-                a.vx += (Math.random()-.5)*.3;
-                a.vy += (Math.random()-.5)*.3;
+                a.vx += (Math.random()-.5)*0.15;
+                a.vy += (Math.random()-.5)*0.15;
 
                 break;
 
             case "Learning":
 
-                a.memory += .02;
+                /*
+                Observable adaptation:
+                agents remember beneficial direction.
+                */
 
-                a.vx *= 1.01;
-                a.vy *= 1.01;
+                a.learnedDX += (Math.random()-.5)*0.02;
+                a.learnedDY += (Math.random()-.5)*0.02;
+
+                a.vx += a.learnedDX;
+                a.vy += a.learnedDY;
 
                 break;
 
             case "Connection":
 
-                let cx = 0;
-                let cy = 0;
-                let count = 0;
+                let neighbors = 0;
+                let avgX = 0;
+                let avgY = 0;
 
-                for(const b of agents){
+                for(let b of AGENTS){
 
                     if(a === b) continue;
 
                     const dx = b.x-a.x;
                     const dy = b.y-a.y;
 
-                    const d = Math.sqrt(dx*dx+dy*dy);
+                    const d = Math.hypot(dx,dy);
 
-                    if(d < 100){
+                    if(d < 80){
 
-                        count++;
+                        avgX += b.x;
+                        avgY += b.y;
 
-                        cx += b.x;
-                        cy += b.y;
+                        neighbors++;
 
                     }
                 }
 
-                if(count){
+                if(neighbors){
 
-                    cx /= count;
-                    cy /= count;
+                    avgX/=neighbors;
+                    avgY/=neighbors;
 
-                    a.vx += (cx-a.x)*0.0008;
-                    a.vy += (cy-a.y)*0.0008;
-
+                    a.vx += (avgX-a.x)*0.0008;
+                    a.vy += (avgY-a.y)*0.0008;
                 }
 
                 break;
 
             case "Crisis":
 
-                a.vx += (Math.random()-.5)*4;
-                a.vy += (Math.random()-.5)*4;
+                if(!crisisTriggered){
+
+                    crisisTriggered = true;
+
+                    AGENTS.forEach(agent=>{
+
+                        const dx = agent.x-centerX();
+                        const dy = agent.y-centerY();
+
+                        const d = Math.max(
+                            Math.hypot(dx,dy),
+                            1
+                        );
+
+                        agent.vx += dx/d*15;
+                        agent.vy += dy/d*15;
+
+                    });
+
+                }
 
                 break;
 
             case "Adaptation":
 
-                a.vx *= .97;
-                a.vy *= .97;
+                a.vx *= .96;
+                a.vy *= .96;
+
+                a.vx += Math.sin(index*.4)*0.05;
+                a.vy += Math.cos(index*.4)*0.05;
 
                 break;
 
             case "Harmony":
 
+                const circleAngle =
+                    (index/COUNT)*Math.PI*2;
+
                 const targetX =
-                    canvas.width/2 +
-                    Math.cos(a.age*.01)*250;
+                    centerX() +
+                    Math.cos(circleAngle)*220;
 
                 const targetY =
-                    canvas.height/2 +
-                    Math.sin(a.age*.01)*250;
+                    centerY() +
+                    Math.sin(circleAngle)*220;
 
-                a.vx += (targetX-a.x)*0.0004;
-                a.vy += (targetY-a.y)*0.0004;
+                a.vx += (targetX-a.x)*0.002;
+                a.vy += (targetY-a.y)*0.002;
 
                 break;
 
             case "Transcendence":
 
-                a.vx +=
-                    Math.cos(a.age*.02)*0.03;
+                const spiralAngle =
+                    (index*.18)+(performance.now()*0.001);
 
-                a.vy +=
-                    Math.sin(a.age*.02)*0.03;
+                const radius =
+                    index * 1.25;
+
+                const spiralX =
+                    centerX() +
+                    Math.cos(spiralAngle)*radius;
+
+                const spiralY =
+                    centerY() +
+                    Math.sin(spiralAngle)*radius;
+
+                a.vx += (spiralX-a.x)*0.0015;
+                a.vy += (spiralY-a.y)*0.0015;
 
                 break;
-
         }
+
+        a.vx *= .98;
+        a.vy *= .98;
 
         a.x += a.vx;
         a.y += a.vy;
 
-        if(a.x < 0) a.x += canvas.width;
-        if(a.x > canvas.width) a.x -= canvas.width;
+        if(a.x<0)a.x+=canvas.width;
+        if(a.x>canvas.width)a.x-=canvas.width;
 
-        if(a.y < 0) a.y += canvas.height;
-        if(a.y > canvas.height) a.y -= canvas.height;
+        if(a.y<0)a.y+=canvas.height;
+        if(a.y>canvas.height)a.y-=canvas.height;
+
+    });
+
+}
+
+function drawConnections(){
+
+    ctx.strokeStyle="rgba(100,180,255,.15)";
+    ctx.lineWidth=1;
+
+    for(let i=0;i<AGENTS.length;i++){
+
+        const a = AGENTS[i];
+
+        for(let j=i+1;j<AGENTS.length;j++){
+
+            const b = AGENTS[j];
+
+            const d = Math.hypot(
+                a.x-b.x,
+                a.y-b.y
+            );
+
+            if(d < 50){
+
+                ctx.beginPath();
+
+                ctx.moveTo(a.x,a.y);
+                ctx.lineTo(b.x,b.y);
+
+                ctx.stroke();
+            }
+        }
     }
 }
 
-function draw(chapter){
+function draw(){
 
-    ctx.fillStyle = "rgba(0,0,0,.08)";
+    ctx.fillStyle="rgba(0,0,0,.09)";
     ctx.fillRect(
         0,
         0,
@@ -350,48 +411,24 @@ function draw(chapter){
         canvas.height
     );
 
-    for(const a of agents){
+    const chapter = currentChapter();
 
-        let color = "#ffffff";
+    if(chapter==="Connection"){
+        drawConnections();
+    }
 
-        switch(chapter.name){
+    let color="#ffffff";
 
-            case "Stillness":
-                color="#666666";
-                break;
+    if(chapter==="Disturbance") color="#ff9944";
+    if(chapter==="Curiosity") color="#ffee66";
+    if(chapter==="Learning") color="#66ff88";
+    if(chapter==="Connection") color="#44ccff";
+    if(chapter==="Crisis") color="#ff3333";
+    if(chapter==="Adaptation") color="#cc88ff";
+    if(chapter==="Harmony") color="#ffffff";
+    if(chapter==="Transcendence") color="#88ffff";
 
-            case "Disturbance":
-                color="#ff5533";
-                break;
-
-            case "Curiosity":
-                color="#ffaa44";
-                break;
-
-            case "Learning":
-                color="#99ff44";
-                break;
-
-            case "Connection":
-                color="#44ccff";
-                break;
-
-            case "Crisis":
-                color="#ff2222";
-                break;
-
-            case "Adaptation":
-                color="#bb66ff";
-                break;
-
-            case "Harmony":
-                color="#ffffff";
-                break;
-
-            case "Transcendence":
-                color="#88ffff";
-                break;
-        }
+    for(let a of AGENTS){
 
         ctx.beginPath();
 
@@ -403,21 +440,19 @@ function draw(chapter){
             Math.PI*2
         );
 
-        ctx.fillStyle = color;
+        ctx.fillStyle=color;
         ctx.fill();
     }
+
 }
 
 function loop(now){
 
     updateChapter(now);
 
-    const chapter =
-        currentChapter();
+    updateAgents();
 
-    updateAgents(chapter);
-
-    draw(chapter);
+    draw();
 
     requestAnimationFrame(loop);
 }
